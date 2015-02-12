@@ -1,11 +1,11 @@
 Flask with uWSGI + Nginx
 ===
-This tutorial shows you to set up a simple Flask app with uWSGI + Nginx.
+This tutorial shows you to set up a simple Flask app with uWSGI + Nginx locally (Using localhost or 127.0.0.1).
 
 At the end of this tutorial, you will be able to do the following:
 
 - Start or stop the app using Upstart
-- Visit the app at http://flask-uwsgi.ubuntu.local. (Throughout this tutorial, replace ubuntu.local with your machine's name.)
+- Visit the app at http://flask-uwsgi.com
 
 Setting up the Python environment
 ---
@@ -23,7 +23,7 @@ Next, install the following Pip packages.
 sudo pip install virtualenv uwsgi
 ```
 
-Next, create the Virtualenv for this tutorial.
+Next, create the Virtualenv for this tutorial. (Can also use https://virtualenvwrapper.readthedocs.org/en/latest/)
 
 ```bash
 cd flask-uwsgi
@@ -32,13 +32,13 @@ source env/bin/activate
 pip install flask
 ```
 
-Next, run the Flask app using uWSGI.
+Next, run the Flask app using uWSGI. --home will depend on your virtual environment location. --wsgi-file will be the location of your flask_uwsgi.py file. Mine are as follows
 
 ```bash
-uwsgi --http 0.0.0.0:8080 --home env --wsgi-file flask_uwsgi.py --callable app --master
+uwsgi --http 127.0.1:8080 --home ~/.virtualenvs/env --wsgi-file ~/code/python/flask-uwsgi/flask-uwsgi/flask_uwsgi.py --callable app --master
 ```
 
-You should be able to visit http://ubuntu.local:8080.
+You should be able to visit http://localhost:8080.
 
 Creating an Upstart service for uWSGI
 ---
@@ -61,11 +61,18 @@ Next, create the init script.
 
 - Copy the init script template to /etc/init/flask-uwsgi.conf.
 - Replace /path/to/flask-uwsgi with the path to this directory.
+- **Note:** Do not use ~/ in flask-uwsgi.conf. It will not expand.
+- Example: Use /home/adam/code/python/flask-uwsgi/flask-uwsgi/ NOT ~/code/python/flask-uwsgi/flask-uwsgi/
 
 Next, create the config file.
 
 - Copy the config template to /etc/flask-uwsgi/flask-uwsgi.ini.
 - Set uid and gid to the numeric uid and gid for www-data.
+
+```bash
+    # Get uid for user www-data
+    id -u www-data
+```
 
 Next, start uWSGI.
 
@@ -97,7 +104,11 @@ sudo ln -sf /etc/nginx/sites-available/flask-uwsgi /etc/nginx/sites-enabled
 sudo service nginx reload
 ```
 
-Next, check that the app is reachable through Nginx. You should be able to visit http://flask-uwsgi.ubuntu.local.
+Next, update you /etc/hosts file to use flask-uwsgi.com
+
+127.0.1.1 flask-uwsgi.com
+
+Next, check that the app is reachable through Nginx. You should be able to visit http://flask-uwsgi.com.
 
 Congratulations! You have deployed an app to uWSGI + Nginx.
 
@@ -108,17 +119,6 @@ You can reload code (or reload the uWSGI config) by sending the HUP signal to uW
 ```bash
 sudo service flask-uwsgi reload
 ```
-
-Adding or simulating DNS entries
----
-If you are running this tutorial in a VM, you can simulate DNS names in the host by editing /etc/hosts. This allows you to visit your VM from your host's browser.
-
-```bash
-# Replace <IP> with your VM's IP.
-<IP> ubuntu.local flask-uwsgi.ubuntu.local
-```
-
-To check this, visit http://ubuntu.local (or http://flask-uwsgi.ubuntu.local) in your host's browser.
 
 References
 ---
